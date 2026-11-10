@@ -1,6 +1,7 @@
 import { Head, router } from '@inertiajs/react';
 import { Pencil, Plus, Trash2 } from 'lucide-react';
 import { useState } from 'react';
+import { staggerEnter } from '@/components/app-content';
 import { PageHeader } from '@/components/erp/page-header';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -90,8 +91,14 @@ export default function UsersIndex({ users, filters, roles, currentUserId }: Pro
                                             </td>
                                         </tr>
                                     )}
-                                    {users.data.map((user) => (
-                                        <tr key={user.id} className="border-t">
+                                    {users.data.map((user, index) => {
+                                        const stagger = staggerEnter(index, 40);
+                                        return (
+                                        <tr
+                                            key={user.id}
+                                            {...stagger}
+                                            className={`border-t ${stagger.className}`}
+                                        >
                                             <td className="px-3 py-2">{user.name}</td>
                                             <td className="px-3 py-2">{user.email}</td>
                                             <td className="px-3 py-2">
@@ -107,7 +114,8 @@ export default function UsersIndex({ users, filters, roles, currentUserId }: Pro
                                                 </div>
                                             </td>
                                         </tr>
-                                    ))}
+                                        );
+                                    })}
                                 </tbody>
                             </table>
                         </div>

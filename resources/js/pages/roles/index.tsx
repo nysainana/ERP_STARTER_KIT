@@ -1,6 +1,7 @@
 import { Head, router } from '@inertiajs/react';
 import { Lock, Plus, Trash2 } from 'lucide-react';
 import { useState } from 'react';
+import { staggerEnter } from '@/components/app-content';
 import { PageHeader } from '@/components/erp/page-header';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -54,8 +55,10 @@ export default function RolesIndex({ tree, roles }: Props) {
                 />
 
                 <div className="grid gap-4 xl:grid-cols-2">
-                    {roles.map((role) => (
-                        <RoleCard key={role.id} role={role} tree={tree} />
+                    {roles.map((role, index) => (
+                        <div key={role.id} {...staggerEnter(index, 60)}>
+                            <RoleCard role={role} tree={tree} />
+                        </div>
                     ))}
                 </div>
             </div>
