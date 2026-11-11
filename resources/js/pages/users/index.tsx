@@ -1,5 +1,5 @@
 import { Head, router } from '@inertiajs/react';
-import { Pencil, Plus, Trash2 } from 'lucide-react';
+import { ArrowUpDown, Filter, Pencil, Plus, RefreshCw, RotateCcw, Trash2 } from 'lucide-react';
 import { useState } from 'react';
 import { staggerEnter } from '@/components/app-content';
 import { PageHeader } from '@/components/erp/page-header';
@@ -49,6 +49,13 @@ export default function UsersIndex({ users, filters, roles, currentUserId }: Pro
         router.get('/users', { search: search.trim() || undefined }, { preserveState: true, replace: true });
     };
 
+    const resetSearch = () => {
+        setSearch('');
+        router.get('/users', {}, { preserveState: true, replace: true });
+    };
+
+    const refresh = () => router.reload({ only: ['users'] });
+
     return (
         <>
             <Head title="Utilisateurs" />
@@ -61,15 +68,24 @@ export default function UsersIndex({ users, filters, roles, currentUserId }: Pro
 
                 <Card>
                     <CardContent className="space-y-4">
-                        <form onSubmit={applySearch} className="flex gap-2">
+                        <form onSubmit={applySearch} className="flex items-center gap-2">
                             <Input
-                                placeholder="Rechercher par nom ou e-mail"
+                                placeholder="Rechercher (nom, e-mail)"
                                 value={search}
                                 onChange={(event) => setSearch(event.target.value)}
-                                className="max-w-sm"
+                                className="flex-1"
                             />
-                            <Button type="submit" variant="secondary">
-                                Rechercher
+                            <Button type="button" variant="outline" size="icon" disabled aria-label="Filtrer">
+                                <Filter />
+                            </Button>
+                            <Button type="button" variant="outline" size="icon" disabled aria-label="Trier">
+                                <ArrowUpDown />
+                            </Button>
+                            <Button type="button" variant="outline" size="icon" onClick={refresh} aria-label="Actualiser">
+                                <RefreshCw />
+                            </Button>
+                            <Button type="button" variant="outline" size="icon" onClick={resetSearch} aria-label="Réinitialiser">
+                                <RotateCcw />
                             </Button>
                         </form>
 
