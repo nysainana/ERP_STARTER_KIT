@@ -40,12 +40,12 @@ class UpdateRoleRequest extends FormRequest
             }
 
             // Un utilisateur ne peut pas se retirer à lui-même la gestion des rôles :
-            // si le rôle modifié est l'un des siens, roles.manage doit rester coché.
+            // si le rôle modifié est l'un des siens, roles.update doit rester coché.
             $user = $this->user();
             $ownsRole = $role !== null && $user?->hasRole($role->name);
-            $keepsManage = in_array('roles.manage', (array) $this->input('permissions', []), true);
+            $keepsUpdate = in_array('roles.update', (array) $this->input('permissions', []), true);
 
-            if ($ownsRole && ! $keepsManage && $user->hasPermissionTo('roles.manage')) {
+            if ($ownsRole && ! $keepsUpdate && $user->hasPermissionTo('roles.update')) {
                 $validator->errors()->add('permissions', 'Vous ne pouvez pas retirer la gestion des rôles à votre propre rôle.');
             }
         });

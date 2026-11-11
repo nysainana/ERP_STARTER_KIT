@@ -61,12 +61,35 @@ class UserManagementTest extends TestCase
         $this->assertDatabaseMissing('users', ['email' => 'bob@example.com']);
     }
 
+    public function test_user_with_only_create_cannot_update_or_delete(): void
+    {
+        $this->seed(PermissionSeeder::class);
+        $target = User::factory()->create();
+        $creator = $this->userWith('users.view', 'users.create');
+
+        $this->actingAs($creator)
+            ->patch(route('users.update', $target), [
+                'name' => 'X',
+                'email' => $target->email,
+                'password' => '',
+                'password_confirmation' => '',
+                'role_id' => Role::create(['name' => 'Commercial', 'guard_name' => 'web'])->id,
+            ])
+            ->assertForbidden();
+
+        $this->actingAs($creator)
+            ->delete(route('users.destroy', $target))
+            ->assertForbidden();
+
+        $this->assertNotNull(User::find($target->id));
+    }
+
     public function test_user_can_be_created_with_roles(): void
     {
         $this->seed(PermissionSeeder::class);
         $role = Role::create(['name' => 'Commercial', 'guard_name' => 'web']);
 
-        $this->actingAs($this->userWith('users.view', 'users.manage'))
+        $this->actingAs($this->userWith('users.view', 'users.create'))
             ->post(route('users.store'), [
                 'name' => 'Bob',
                 'email' => 'bob@example.com',
@@ -87,7 +110,7 @@ class UserManagementTest extends TestCase
         $this->seed(PermissionSeeder::class);
         User::factory()->create(['email' => 'taken@example.com']);
 
-        $this->actingAs($this->userWith('users.view', 'users.manage'))
+        $this->actingAs($this->userWith('users.view', 'users.create'))
             ->post(route('users.store'), [
                 'name' => 'Bob',
                 'email' => 'taken@example.com',
@@ -104,7 +127,7 @@ class UserManagementTest extends TestCase
         $target = User::factory()->create(['name' => 'Ancien']);
         $originalHash = $target->password;
 
-        $this->actingAs($this->userWith('users.view', 'users.manage'))
+        $this->actingAs($this->userWith('users.view', 'users.update'))
             ->patch(route('users.update', $target), [
                 'name' => 'Nouveau',
                 'email' => $target->email,
@@ -127,7 +150,7 @@ class UserManagementTest extends TestCase
         $target = User::factory()->create();
         $target->assignRole($old);
 
-        $this->actingAs($this->userWith('users.view', 'users.manage'))
+        $this->actingAs($this->userWith('users.view', 'users.update'))
             ->patch(route('users.update', $target), [
                 'name' => $target->name,
                 'email' => $target->email,
@@ -143,7 +166,7 @@ class UserManagementTest extends TestCase
     public function test_user_cannot_delete_their_own_account(): void
     {
         $this->seed(PermissionSeeder::class);
-        $manager = $this->userWith('users.view', 'users.manage');
+        $manager = $this->userWith('users.view', 'users.delete');
 
         $this->actingAs($manager)
             ->delete(route('users.destroy', $manager))
@@ -155,7 +178,7 @@ class UserManagementTest extends TestCase
     public function test_other_user_can_be_deleted(): void
     {
         $this->seed(PermissionSeeder::class);
-        $manager = $this->userWith('users.view', 'users.manage');
+        $manager = $this->userWith('users.view', 'users.delete');
         $target = User::factory()->create();
 
         $this->actingAs($manager)

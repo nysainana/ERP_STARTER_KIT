@@ -67,7 +67,7 @@ class RoleManagementTest extends TestCase
         $this->seed(PermissionSeeder::class);
         $role = Role::create(['name' => 'Commercial', 'guard_name' => 'web']);
 
-        $this->actingAs($this->userWith('roles.view', 'roles.manage'))
+        $this->actingAs($this->userWith('roles.view', 'roles.update'))
             ->patch(route('roles.update', $role), ['permissions' => ['dashboard.view', 'users.view']])
             ->assertRedirect(route('roles.index'));
 
@@ -82,7 +82,7 @@ class RoleManagementTest extends TestCase
         $this->seed(PermissionSeeder::class);
         $role = Role::create(['name' => 'Commercial', 'guard_name' => 'web']);
 
-        $this->actingAs($this->userWith('roles.view', 'roles.manage'))
+        $this->actingAs($this->userWith('roles.view', 'roles.update'))
             ->patch(route('roles.update', $role), ['permissions' => ['hacked.everything']])
             ->assertSessionHasErrors('permissions.0');
 
@@ -94,7 +94,7 @@ class RoleManagementTest extends TestCase
         $this->seed(PermissionSeeder::class);
         $role = Role::create(['name' => 'Commercial', 'guard_name' => 'web']);
 
-        $this->actingAs($this->userWith('roles.view', 'roles.manage'))
+        $this->actingAs($this->userWith('roles.view', 'roles.update'))
             ->patch(route('roles.update', $role), [])
             ->assertSessionHasErrors('permissions');
     }
@@ -104,7 +104,7 @@ class RoleManagementTest extends TestCase
         $this->seed(PermissionSeeder::class);
         $admin = Role::findByName(PermissionSeeder::ADMIN_ROLE, 'web');
 
-        $this->actingAs($this->userWith('roles.view', 'roles.manage'))
+        $this->actingAs($this->userWith('roles.view', 'roles.update'))
             ->patch(route('roles.update', $admin), ['permissions' => ['dashboard.view']])
             ->assertSessionHasErrors('permissions');
 
@@ -115,7 +115,7 @@ class RoleManagementTest extends TestCase
     {
         $this->seed(PermissionSeeder::class);
         $ownRole = Role::create(['name' => 'Gestionnaire', 'guard_name' => 'web']);
-        $ownRole->givePermissionTo(['roles.view', 'roles.manage']);
+        $ownRole->givePermissionTo(['roles.view', 'roles.update']);
 
         $manager = User::factory()->create();
         $manager->assignRole($ownRole);
@@ -124,27 +124,27 @@ class RoleManagementTest extends TestCase
             ->patch(route('roles.update', $ownRole), ['permissions' => ['roles.view']])
             ->assertSessionHasErrors('permissions');
 
-        $this->assertTrue($ownRole->fresh()->hasPermissionTo('roles.manage'));
+        $this->assertTrue($ownRole->fresh()->hasPermissionTo('roles.update'));
     }
 
-    public function test_user_can_remove_roles_manage_from_another_role(): void
+    public function test_user_can_remove_roles_update_from_another_role(): void
     {
         $this->seed(PermissionSeeder::class);
-        $manager = $this->userWith('roles.view', 'roles.manage');
+        $manager = $this->userWith('roles.view', 'roles.update');
         $other = Role::create(['name' => 'Commercial', 'guard_name' => 'web']);
-        $other->givePermissionTo('roles.manage');
+        $other->givePermissionTo('roles.update');
 
         $this->actingAs($manager)
             ->patch(route('roles.update', $other), ['permissions' => ['roles.view']])
             ->assertSessionHasNoErrors();
 
-        $this->assertFalse($other->fresh()->hasPermissionTo('roles.manage'));
+        $this->assertFalse($other->fresh()->hasPermissionTo('roles.update'));
     }
 
     public function test_role_can_be_created_with_permissions(): void
     {
         $this->seed(PermissionSeeder::class);
-        $manager = $this->userWith('roles.view', 'roles.manage');
+        $manager = $this->userWith('roles.view', 'roles.create');
 
         $this->actingAs($manager)
             ->post(route('roles.store'), [
@@ -160,7 +160,7 @@ class RoleManagementTest extends TestCase
     public function test_administrateur_name_cannot_be_reused_on_create(): void
     {
         $this->seed(PermissionSeeder::class);
-        $manager = $this->userWith('roles.view', 'roles.manage');
+        $manager = $this->userWith('roles.view', 'roles.create');
 
         $this->actingAs($manager)
             ->post(route('roles.store'), [
@@ -173,7 +173,7 @@ class RoleManagementTest extends TestCase
     public function test_unused_role_can_be_deleted(): void
     {
         $this->seed(PermissionSeeder::class);
-        $manager = $this->userWith('roles.view', 'roles.manage');
+        $manager = $this->userWith('roles.view', 'roles.delete');
         $role = Role::create(['name' => 'Temporaire', 'guard_name' => 'web']);
 
         $this->actingAs($manager)
@@ -186,7 +186,7 @@ class RoleManagementTest extends TestCase
     public function test_role_assigned_to_users_cannot_be_deleted(): void
     {
         $this->seed(PermissionSeeder::class);
-        $manager = $this->userWith('roles.view', 'roles.manage');
+        $manager = $this->userWith('roles.view', 'roles.delete');
         $role = Role::create(['name' => 'Utilisé', 'guard_name' => 'web']);
         User::factory()->create()->assignRole($role);
 
@@ -200,7 +200,7 @@ class RoleManagementTest extends TestCase
     public function test_administrateur_cannot_be_deleted(): void
     {
         $this->seed(PermissionSeeder::class);
-        $manager = $this->userWith('roles.view', 'roles.manage');
+        $manager = $this->userWith('roles.view', 'roles.delete');
         $admin = Role::findByName(PermissionSeeder::ADMIN_ROLE, 'web');
 
         $this->actingAs($manager)
@@ -215,7 +215,7 @@ class RoleManagementTest extends TestCase
         $this->seed(PermissionSeeder::class);
         $admin = Role::findByName(PermissionSeeder::ADMIN_ROLE, 'web');
 
-        $this->actingAs($this->userWith('roles.view', 'roles.manage'))
+        $this->actingAs($this->userWith('roles.view', 'roles.update'))
             ->patch(route('roles.update', $admin), ['permissions' => PermissionTree::keys()])
             ->assertSessionHasNoErrors()
             ->assertRedirect(route('roles.index'));
